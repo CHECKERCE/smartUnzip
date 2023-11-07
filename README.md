@@ -2,6 +2,11 @@
 
 checks any Archive file and unpacks it in it's directory if there is only one object inside, if there are multiple it creates a new folder to put the objects in. Also deletes the Archive afterwards.
 
+## requirements
+
+this program requires you to have 7zip installed and added to PATH
+
+
 
 ## context menu
 
