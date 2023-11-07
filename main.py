@@ -1,11 +1,23 @@
 import os
-import zipfile
 from send2trash import send2trash
 import sys
+import subprocess
+
 
 def getFileNamesInZip(zipFilePath):
-    zip = zipfile.ZipFile(zipFilePath)
-    return zip.namelist()
+    processReturn = subprocess.check_output("7z l " + zipFilePath, creationflags=subprocess.CREATE_NO_WINDOW)
+    decoded_string = processReturn.decode("utf-8").replace("\\\\", "\\").replace("\\", "/")
+    ZipList = decoded_string.strip().split("\n")
+    listStarted = False
+    fileList = []
+    for entry in ZipList:
+        if listStarted:
+            if "----" in entry:
+                return fileList
+            fileList.append(entry.split(" ")[-1])
+        else:
+            if "-----" in entry:
+                listStarted = True
 
 
 def getNumberOfObjectsInZipRoot(zipFilePath):
@@ -20,12 +32,12 @@ def getNumberOfObjectsInZipRoot(zipFilePath):
     return c
 
 
-def unpackZip(zipFilePath, targetDir):
-    zip = zipfile.ZipFile(zipFilePath)
-    zip.extractall(targetDir)
+def unpackZip(zipFilePath, destinationDir):
+    subprocess.call("7z x " + zipFilePath + " -o" + destinationDir, creationflags=subprocess.CREATE_NO_WINDOW)
 
 
 def smartUnpack(zipPath):
+    print("name: " + os.path.dirname(zipPath))
     if getNumberOfObjectsInZipRoot(zipPath) <= 1:
         unpackZip(zipPath, os.path.dirname(zipPath))
         send2trash(zipPath)
@@ -36,8 +48,9 @@ def smartUnpack(zipPath):
         send2trash(zipPath)
         return True
 
+
 if __name__ == "__main__":
-    if len(sys.argv)>1:
+    if len(sys.argv) > 1:
         smartUnpack(sys.argv[1])
     else:
         print("Please provide an archive file as argument")
